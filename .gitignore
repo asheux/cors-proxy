@@ -1,0 +1,8 @@
+# Env
+venv
+
+# Py
+__pycache__/
+
+# Vim stuff
+*.sw?
