@@ -1,0 +1,15 @@
+.env
+.env.*
+.git
+.gitignore
+.dockerignore
+.editorconfig
+.gitignore
+.vscode
+Dockerfile*
+docker-compose*
+node_modules
+logs
+media
+static
+README.md

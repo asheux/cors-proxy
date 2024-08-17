@@ -1,0 +1,32 @@
+version: "3.11"
+
+services:
+    db:
+        image: postgres
+        environment:
+            - POSTGRES_DB=tccup
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        ports:
+            - 5432:5432
+    flask:
+        build:
+            context: .
+        image: cors-proxy_flask
+        environment:
+            - FLASK_ENV=development
+            - PYTHONUNBUFFERED=1
+            - DB_HOST=db
+            - DB_PORT=5432
+        command: runserver
+        volumes:
+            - .:/code
+        ports:
+            - 5000:5000
+        depends_on:
+            - db
+
+volumes:
+    postgres_data:

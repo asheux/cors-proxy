@@ -3,6 +3,9 @@ venv
 
 # Py
 __pycache__/
+.DS_Store
+dataset/
+runs/
 
 # Vim stuff
 *.sw?
