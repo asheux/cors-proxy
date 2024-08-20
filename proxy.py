@@ -1,3 +1,4 @@
+import time
 import requests
 from datetime import datetime
 
@@ -6,6 +7,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 from veribot import VeriBot3000
+from s3_client import S3Client
 
 # Configuration
 app = Flask(__name__)
@@ -146,11 +148,21 @@ def downvote(user_id):
     db.session.commit()
     return jsonify({'data': {'message': 'Disagreed successfully'}}), 200
 
-@app.route('/veribot', methods=['GET'])
+@app.route('/veribot', methods=['POST'])
 def veribot():
-    v = VeriBot3000()
-    message, valid = v.is_valid('testn.jpg')
-    return message
+    file = request.files.get('file')
+    if not file:
+        return {'error': 'File is not provided'}
+
+    try:
+        file_name = f"user_uploaded_file_{time.time()}-{file.filename}".strip()
+        s3 = S3Client()
+        s3.upload_temp_file_to_s3(file_name, file)
+        v = VeriBot3000()
+        message, status = v.is_valid(file, 'trash_detection_model.pt')
+        return message, status
+    except Exception as error:
+        return {'error': 'File to upload image'}, 400
 
 
 if __name__ == "__main__":

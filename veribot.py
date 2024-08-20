@@ -1,9 +1,9 @@
 import cv2
 import os
-import numpy as np
+import io
 import PIL
 
-# from ultralytics import YOLO
+from ultralytics import YOLO
 from datetime import datetime
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
@@ -14,8 +14,8 @@ class VeriBot3000:
     def __init__(self, model = None):
         self.trash_model = model
 
-    def check_image_metadata(self, image_src: str):
-        image = Image.open(image_src)
+    def check_image_metadata(self, file):
+        image = Image.open(file)
         after_date = datetime.strptime('2024:08:19 20:05:46', '%Y:%m:%d %H:%M:%S')
         exif_data = image._getexif()
         if not exif_data:
@@ -85,54 +85,61 @@ class VeriBot3000:
         point = Point(lon, lat)
         return {'yes_gps_and_valid': kenya_boundary.contains(point)}
 
-    def detect_trash(self, image_src: str):
-        image = cv2.imread(image_src)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, (224, 224))
-        image = np.expand_dims(image, axis=0)
-        image = image / 255.0
-
+    def trash_detection(self, file, model):
+        image = Image.open(file)
+        image = image.convert('RGB')
         # Predict
-        predictions = self.trash_model.predict(image)
-        if predictions[0][0] > 0.5:
+        predictions = self.get_model_prediction(image, model)
+        if predictions:
             return True
         return False
 
-    def trash_detection(self, image_src: str):
-        # Trash detection
-        trash_detected = self.detect_trash(image_src)
-        if trash_detected:
-            print('Trash detected')
-        else:
-            print('No trash detected')
-
-    def checkmodel(self, image_src, model):
+    def get_model_prediction(self, image, model):
         model = YOLO(model)
-        results = model(image_src)
+        results = model(image)
         result = results[0]
         result.show()
         predictions = result.boxes
+        classes = [
+            'Aerosol', 'Aluminium foil', 'Battery', 'Broken glass',
+            'Cigarette', 'Corrugated carton', 'Crisp packet', 'Drink can',
+            'Drink carton', 'Egg carton', 'Foam cup', 'Food Can',
+            'Food waste', 'Garbage bag', 'Glass', 'Glass bottle',
+            'Glass cup', 'Glass jar', 'Magazine paper', 'Meal carton',
+            'Metal', 'Metal lid', 'Normal paper', 'Paper', 'Paper bag',
+            'Paper cup', 'Paper straw', 'Pizza box', 'Plastic',
+            'Plastic film', 'Plastic lid', 'Plastic straw', 'Plastic utensils',
+            'Polypropylene bag', 'Pop tab', 'Scrap metal', 'Shoe', 'Spread tub',
+            'Squeezable tube', 'Styrofoam piece', 'Tissues', 'Toilet tube',
+            'Tupperware', 'Waste', 'Wrapping paper',
+        ]
+        best_predicted_classes = []
 
         for box in predictions:
             coords = box.xyxy[0].tolist()
             confidence = box.conf[0].item()
             class_id = box.cls[0].item()
             class_name = result.names[int(class_id)]
-            print(f"Predicted {class_name} with confidence {confidence:.2f} at {coords}")
+            if class_name in classes and confidence > 0.5:
+                best_predicted_classes.append(class_name)
+        return best_predicted_classes
 
-    def is_valid(self, image_src: str):
-        is_metadata_valid_message = self.check_image_metadata(image_src)
-        keys = ['no_gps_data', 'yes_gps_and_valid', 'non_original', 'old_image', 'outside']
+    def is_valid(self, file, model):
+        is_metadata_valid_message = self.check_image_metadata(file)
+        keys = ['no_gps_data', 'yes_gps_and_valid']
         if is_metadata_valid_message.get('non_original'):
-            return {'error': 'Ensure the picture uploaded is the original photo.'}, False
+            return {'error': 'Please upload an original photo. Tip: If on laptop, use cloud to download.'}, 400
         
         if is_metadata_valid_message.get('old_image'):
-            return {'error': 'Only photos taken after August, 19 2024 are accepted'}, False
+            return {'error': 'Only photos taken after August, 19 2024 are accepted'}, 400
 
         if is_metadata_valid_message.get('outside'):
             return {
                 'error': 'Wrong image geographical location. Not a global function, yet. Try Kenya'
-            }, False
+            }, 400
 
-#         self.trash_detection(image_src)
-        return {'success': 'Image auntenticity verified.'}, True
+        # Prediction any indication of trash in the image using CNN
+        is_trash_detected = self.trash_detection(file, model)
+        if not is_trash_detected:
+            return {'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'}, 400
+        return {'data': {'success': 'Image auntenticity verified.'}}, 200
