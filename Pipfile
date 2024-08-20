@@ -11,6 +11,8 @@ numpy = "*"
 opencv-python = "*"
 flask-sqlalchemy = "*"
 psycopg2-binary = "*"
+pillow = "*"
+shapely = "*"
 
 [dev-packages]
 

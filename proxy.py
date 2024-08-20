@@ -95,7 +95,7 @@ def thought():
     if user is not None:
         user.grokcoins += 1
         db.session.commit()
-        message = "In any perfect world, one vote is allowed. But hey, you got a coin!"
+        message = "In any perfect world, one vote is allowed. But hey, you got a GovCoin!"
         errormessage = {'name': message}
         return jsonify({'error': errormessage}), 400
 
@@ -145,6 +145,12 @@ def downvote(user_id):
 
     db.session.commit()
     return jsonify({'data': {'message': 'Disagreed successfully'}}), 200
+
+@app.route('/veribot', methods=['GET'])
+def veribot():
+    v = VeriBot3000()
+    message, valid = v.is_valid('testn.jpg')
+    return message
 
 
 if __name__ == "__main__":
