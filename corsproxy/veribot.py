@@ -98,7 +98,7 @@ class VeriBot3000:
         model = YOLO(model)
         results = model(image)
         result = results[0]
-        result.show()
+        # result.show()
         predictions = result.boxes
         classes = [
             'Aerosol', 'Aluminium foil', 'Battery', 'Broken glass',
@@ -124,22 +124,26 @@ class VeriBot3000:
                 best_predicted_classes.append(class_name)
         return best_predicted_classes
 
-    def is_valid(self, file, model):
+    def detect_trash(self, file, model):
+        # Prediction any indication of trash in the image using CNN
+        is_trash_detected = self.trash_detection(file, model)
+        return is_trash_detected
+
+    def is_valid(self, file):
         is_metadata_valid_message = self.check_image_metadata(file)
-        keys = ['no_gps_data', 'yes_gps_and_valid']
         if is_metadata_valid_message.get('non_original'):
-            return {'error': 'Please upload an original photo. Tip: If on laptop, use cloud to download.'}, 400
+            return {'error': 'Upload the original photo. Tip: If on laptop, use cloud to download.'}, 400
         
         if is_metadata_valid_message.get('old_image'):
             return {'error': 'Only photos taken after August, 19 2024 are accepted'}, 400
 
-        if is_metadata_valid_message.get('outside'):
+        is_inside = is_metadata_valid_message.get('yes_gps_and_valid')
+        if is_metadata_valid_message.get('outside') or (is_inside is not None and not is_inside):
             return {
                 'error': 'Wrong image geographical location. Not a global function, yet. Try Kenya'
             }, 400
 
-        # Prediction any indication of trash in the image using CNN
-        is_trash_detected = self.trash_detection(file, model)
-        if not is_trash_detected:
-            return {'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'}, 400
+        if is_metadata_valid_message.get('no_gps_data'):
+            # Check location based on IP address
+            pass 
         return {'data': {'success': 'Image auntenticity verified.'}}, 200

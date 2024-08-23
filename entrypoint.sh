@@ -39,7 +39,9 @@ migrate)
   ;;
 runserver)
   wait_for_db
-  flask run --host=0.0.0.0 --port=5000 --debug
+  python migrate.py
+  gunicorn -b 0.0.0.0:5000 proxy:app --workers=4
+  # flask run --host=0.0.0.0 --port=5000 --debug
   ;;
 python)
   shift 1

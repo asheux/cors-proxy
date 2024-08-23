@@ -6,8 +6,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
-from veribot import VeriBot3000
-from s3_client import S3Client
+from corsproxy.veribot import VeriBot3000
+from corsproxy.s3_client import S3Client
 
 # Configuration
 app = Flask(__name__)
@@ -48,6 +48,11 @@ class Vote(db.Model):
 
     user = db.relationship('User', backref=db.backref('votes', lazy=True))
 
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return "Hello friend! Welcome! This is a portal to a free world."
 
 @app.route('/crawl', methods=['GET'])
 def crawl():
@@ -152,18 +157,34 @@ def downvote(user_id):
 def veribot():
     file = request.files.get('file')
     if not file:
-        return {'error': 'File is not provided'}
+        return {'error': 'File is not provided.'}
 
     try:
         file_name = f"user_uploaded_file_{time.time()}-{file.filename}".strip()
         s3 = S3Client()
         s3.upload_temp_file_to_s3(file_name, file)
         v = VeriBot3000()
-        message, status = v.is_valid(file, 'trash_detection_model.pt')
+        message, status = v.is_valid(file)
         return message, status
     except Exception as error:
-        return {'error': 'File to upload image'}, 400
+        return {'error': 'Failed to upload image. Try again.'}, 400
+
+@app.route('/detectrash', methods=['POST'])
+def detectrash():
+    file = request.files.get('file')
+    model = 'corsproxy/trash_detection_model.pt'
+    if not file:
+        return {'error': 'File is not provided'}
+
+    try:
+        v = VeriBot3000()
+        is_trash_detected = v.detect_trash(file, model)
+        if not is_trash_detected:
+            return {'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'}, 400
+        return {'data': {'success': 'Trash detected in the image. Thank you for your service.'}}, 200
+    except Exception as error:
+        return {'error': 'Failed to upload image. Try again.'}, 400
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run()

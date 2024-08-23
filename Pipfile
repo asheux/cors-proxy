@@ -16,6 +16,7 @@ shapely = "*"
 boto3 = "*"
 python-dotenv = "*"
 ultralytics = "*"
+gunicorn = "*"
 
 [dev-packages]
 

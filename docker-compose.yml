@@ -3,6 +3,7 @@ version: "3.11"
 services:
     db:
         image: postgres
+        container_name: db
         environment:
             - POSTGRES_DB=tccup
             - POSTGRES_USER=postgres
@@ -11,12 +12,13 @@ services:
             - postgres_data:/var/lib/postgresql/data/
         ports:
             - 5432:5432
-    flask:
+    corsproxy:
         build:
             context: .
-        image: cors-proxy_flask
+        image: corsproxy:latest
+        container_name: corsproxy
         environment:
-            - FLASK_ENV=development
+            - FLASK_ENV=production
             - PYTHONUNBUFFERED=1
             - DB_HOST=db
             - DB_PORT=5432
@@ -27,6 +29,19 @@ services:
             - 5000:5000
         depends_on:
             - db
+        env_file:
+            - .env
+
+    nginx:
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+        image: nginx:latest
+        container_name: nginx
+        ports:
+            - 80:80
+        depends_on:
+            - corsproxy
 
 volumes:
     postgres_data:
