@@ -8,6 +8,8 @@ services:
             - 5432:5432
         networks:
             - flasknet
+        env_file:
+            - .env
     corsproxy:
         build:
             context: .
