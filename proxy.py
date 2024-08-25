@@ -191,7 +191,3 @@ def detectrash():
         return {'data': {'success': 'Trash detected in the image. Thank you for your service.'}}, 200
     except Exception as error:
         return {'error': 'Failed to upload image. Try again.'}, 400
-
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0')
