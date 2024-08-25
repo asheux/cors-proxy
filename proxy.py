@@ -172,13 +172,12 @@ def veribot():
 @app.route('/detectrash', methods=['POST'])
 def detectrash():
     file = request.files.get('file')
-    model = 'corsproxy/trash_detection_model.pt'
     if not file:
         return {'error': 'File is not provided'}
 
     try:
         v = VeriBot3000()
-        is_trash_detected = v.detect_trash(file, model)
+        is_trash_detected = v.detect_trash(file)
         if not is_trash_detected:
             return {'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'}, 400
         return {'data': {'success': 'Trash detected in the image. Thank you for your service.'}}, 200
@@ -187,4 +186,4 @@ def detectrash():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')

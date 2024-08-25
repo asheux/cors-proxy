@@ -7,11 +7,13 @@ services:
         environment:
             - POSTGRES_DB=tccup
             - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_PASSWORD=asedcvgytrfghjklasycyi12M
         volumes:
             - postgres_data:/var/lib/postgresql/data/
         ports:
             - 5432:5432
+        networks:
+            - flasknet
     corsproxy:
         build:
             context: .
@@ -20,7 +22,7 @@ services:
         environment:
             - FLASK_ENV=production
             - PYTHONUNBUFFERED=1
-            - DB_HOST=db
+            - DB_HOST=tccup.cho8qew2go0v.us-east-1.rds.amazonaws.com
             - DB_PORT=5432
         command: runserver
         volumes:
@@ -32,6 +34,9 @@ services:
         env_file:
             - .env
 
+        networks:
+            - flasknet
+
     nginx:
         build:
             context: ./nginx
@@ -42,6 +47,12 @@ services:
             - 80:80
         depends_on:
             - corsproxy
+        networks:
+            - flasknet
 
 volumes:
     postgres_data:
+
+networks:
+    flasknet:
+        driver: bridge

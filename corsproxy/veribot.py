@@ -1,4 +1,3 @@
-import cv2
 import os
 import io
 import PIL
@@ -124,8 +123,9 @@ class VeriBot3000:
                 best_predicted_classes.append(class_name)
         return best_predicted_classes
 
-    def detect_trash(self, file, model):
+    def detect_trash(self, file):
         # Prediction any indication of trash in the image using CNN
+        model = 'corsproxy/trash_detection_model.pt'
         is_trash_detected = self.trash_detection(file, model)
         return is_trash_detected
 
@@ -133,7 +133,7 @@ class VeriBot3000:
         is_metadata_valid_message = self.check_image_metadata(file)
         if is_metadata_valid_message.get('non_original'):
             return {'error': 'Upload the original photo. Tip: If on laptop, use cloud to download.'}, 400
-        
+
         if is_metadata_valid_message.get('old_image'):
             return {'error': 'Only photos taken after August, 19 2024 are accepted'}, 400
 
@@ -145,5 +145,5 @@ class VeriBot3000:
 
         if is_metadata_valid_message.get('no_gps_data'):
             # Check location based on IP address
-            pass 
+            pass
         return {'data': {'success': 'Image auntenticity verified.'}}, 200

@@ -15,6 +15,8 @@ WORKDIR /code
 
 RUN pip install --upgrade pip
 RUN pip install pipenv dill
+RUN pip install --no-cache-dir torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir ultralytics
 
 COPY Pipfile requirements.txt Pipfile.lock ./
 
