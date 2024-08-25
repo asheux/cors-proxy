@@ -6,8 +6,7 @@ services:
             - postgres_data:/var/lib/postgresql/data/
         ports:
             - 5432:5432
-        networks:
-            - flasknet
+        network_mode: host
         env_file:
             - .env
     corsproxy:
@@ -26,8 +25,7 @@ services:
             - db
         env_file:
             - .env
-        networks:
-            - flasknet
+        network_mode: host
 
     nginx:
         build:
@@ -43,12 +41,7 @@ services:
             - 443:443
         depends_on:
             - corsproxy
-        networks:
-            - flasknet
+        network_mode: host
 
 volumes:
     postgres_data:
-
-networks:
-    flasknet:
-        driver: bridge
