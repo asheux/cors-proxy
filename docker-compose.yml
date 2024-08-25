@@ -1,18 +1,20 @@
 services:
     db:
-        image: postgres
+        image: postgres:latest
         container_name: db
         volumes:
             - postgres_data:/var/lib/postgresql/data/
         ports:
             - 5432:5432
-        network_mode: host
+        networks:
+            - flasknet
         env_file:
             - .env
-    corsproxy:
+
+    app:
         build:
             context: .
-        image: corsproxy:latest
+        image: cors-proxy_app
         container_name: corsproxy
         environment:
             - PYTHONUNBUFFERED=1
@@ -25,7 +27,28 @@ services:
             - db
         env_file:
             - .env
-        network_mode: host
+        networks:
+            - flasknet
+
+    nginx:
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+        image: nginx:latest
+        container_name: nginx
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            - app
+        networks:
+            - flasknet
 
 volumes:
     postgres_data:
+
+networks:
+    flasknet:
+        driver: bridge
