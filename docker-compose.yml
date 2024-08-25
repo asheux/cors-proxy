@@ -27,21 +27,5 @@ services:
             - .env
         network_mode: host
 
-    nginx:
-        build:
-            context: ./nginx
-            dockerfile: Dockerfile
-        image: nginx:latest
-        container_name: nginx
-        volumes:
-            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-            - ./nginx/certificates:/etc/nginx/certificates
-        ports:
-            - 80:80
-            - 443:443
-        depends_on:
-            - corsproxy
-        network_mode: host
-
 volumes:
     postgres_data:
