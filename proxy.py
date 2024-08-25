@@ -1,6 +1,8 @@
 import time
+import os
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -10,8 +12,14 @@ from corsproxy.veribot import VeriBot3000
 from corsproxy.s3_client import S3Client
 
 # Configuration
+load_dotenv()
+db_user = os.getenv('POSTGRES_USER')
+db_password = os.getenv('POSTGRES_PASSWORD')
+db_name = os.getenv('POSTGRES_DB')
+db_port = os.getenv('DB_PORT')
+db_host = os.getenv('DB_HOST')
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@db:5432/tccup'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 CORS(app)
 

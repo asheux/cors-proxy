@@ -1,13 +1,7 @@
-version: "3.11"
-
 services:
     db:
         image: postgres
         container_name: db
-        environment:
-            - POSTGRES_DB=tccup
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=asedcvgytrfghjklasycyi12M
         volumes:
             - postgres_data:/var/lib/postgresql/data/
         ports:
@@ -20,10 +14,7 @@ services:
         image: corsproxy:latest
         container_name: corsproxy
         environment:
-            - FLASK_ENV=production
             - PYTHONUNBUFFERED=1
-            - DB_HOST=tccup.cho8qew2go0v.us-east-1.rds.amazonaws.com
-            - DB_PORT=5432
         command: runserver
         volumes:
             - .:/code
