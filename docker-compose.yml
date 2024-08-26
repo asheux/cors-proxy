@@ -14,7 +14,7 @@ services:
         build:
             context: .
         image: cors-proxy_app
-        container_name: corsproxy
+        container_name: app
         environment:
             - PYTHONUNBUFFERED=1
         command: runserver
