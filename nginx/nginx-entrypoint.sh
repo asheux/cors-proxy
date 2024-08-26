@@ -2,7 +2,7 @@
 
 # Wait for the corsproxy container to be available
 echo "Waiting for DNS resolution of corsproxy..."
-while ! nc -zv corsproxy 5000; do
+while ! nc -zv app 5000; do
   echo "corsproxy not available yet, sleeping..."
   sleep 2
 done
