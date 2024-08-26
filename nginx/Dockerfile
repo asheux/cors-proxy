@@ -12,6 +12,3 @@ COPY ./certificates /etc/nginx/certificates
 RUN chmod +x /usr/local/bin/nginx-entrypoint.sh
 EXPOSE 80
 EXPOSE 443
-
-ENTRYPOINT ["/usr/local/bin/nginx-entrypoint.sh"]
-
