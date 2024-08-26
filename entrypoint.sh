@@ -40,8 +40,8 @@ migrate)
 runserver)
   wait_for_db
   python migrate.py
-  gunicorn --bind 0.0.0.0:5000 wsgi:app --workers=2 --preload
-  # flask run --host=0.0.0.0 --port=5000 --debug
+  gunicorn --bind 0.0.0.0:8000 wsgi:app --workers=2 --preload
+  # flask run --host=0.0.0.0 --port=8000 --debug
   ;;
 python)
   shift 1
