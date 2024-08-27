@@ -11,7 +11,7 @@ class S3Client:
         load_dotenv()
         self.aws_access_key_id = os.getenv('AWS_ACCESS_KEY')
         self.aws_secret_access_key = os.getenv('AWS_SECRET_KEY')
-        self.bucket_name = os.getenv('BUCKET_NAME')
+        self.bucket_name = "tccup"
         self.aws_default_region = "us-east-2"
 
     def get_s3_client(self):
