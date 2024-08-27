@@ -60,7 +60,13 @@ class Vote(db.Model):
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello friend! Welcome! This is a portal to a free world."
+    return """
+        <div style='text-align: center; margin-top: 3em;'>
+            <h1>
+                Hello friend! Welcome! This is a portal to a free world.
+            </h1>
+        </div>
+    """
 
 @app.route('/crawl', methods=['GET'])
 def crawl():
