@@ -6,55 +6,12 @@ from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 
 from corsproxy.veribot import VeriBot3000
 from corsproxy.s3_client import S3Client
-
-# Configuration
-load_dotenv()
-db_user = os.getenv('POSTGRES_USER')
-db_password = os.getenv('POSTGRES_PASSWORD')
-db_name = os.getenv('POSTGRES_DB')
-db_port = os.getenv('DB_PORT')
-db_host = os.getenv('DB_HOST')
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-CORS(app)
-
-db = SQLAlchemy(app)
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    thought = db.Column(db.Text())
-    upvotes = db.Column(db.Integer, default=0)
-    downvotes = db.Column(db.Integer, default=0)
-    grokcoins = db.Column(db.Integer, default=1)
-
-    def __repr__(self):
-        return f'<Thought {self.name}>'
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'created_at': self.created_at,
-            'name': self.name,
-            'thought': self.thought,
-            'upvotes': self.upvotes,
-            'downvotes': self.downvotes,
-            'grokcoins': self.grokcoins,
-        }
-
-
-class Vote(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    vote_type = db.Column(db.String(10), nullable=False)
-
-    user = db.relationship('User', backref=db.backref('votes', lazy=True))
+from corsproxy.models import User, Vote
+from blockchain.hashing import Blockchain
+from create_app import app
 
 
 @app.route('/')
@@ -171,29 +128,45 @@ def downvote(user_id):
 def veribot():
     file = request.files.get('file')
     if not file:
-        return {'error': 'File is not provided.'}
+        return jsonify({'error': 'File is not provided.'}), 400
 
     try:
-        file_name = f"user_uploaded_file_{time.time()}-{file.filename}".strip()
-        s3 = S3Client()
-        s3.upload_temp_file_to_s3(file_name, file)
         v = VeriBot3000()
         message, status = v.is_valid(file)
-        return message, status
+        return jsonify(message), status
     except Exception as error:
-        return {'error': 'Failed to upload image. Try again.'}, 400
+        return jsonify({'error': 'Failed to upload image. Try again.'}), 400
 
 @app.route('/detectrash', methods=['POST'])
 def detectrash():
     file = request.files.get('file')
     if not file:
-        return {'error': 'File is not provided'}
+        return jsonify({'error': 'File is not provided'}), 400
 
     try:
         v = VeriBot3000()
         is_trash_detected = v.detect_trash(file)
         if not is_trash_detected:
-            return {'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'}, 400
-        return {'data': {'success': 'Trash detected in the image. Thank you for your service.'}}, 200
+            return jsonify({
+                'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'
+            }), 400
+
+        s3 = S3Client()
+        file_name = f"user_uploaded_file_{time.time()}-{file.filename}".strip()
+        s3.upload_temp_file_to_s3(file_name, file)
+        return jsonify({'data': {'success': 'Trash detected in the image.'}}), 200
     except Exception as error:
-        return {'error': 'Failed to upload image. Try again.'}, 400
+        return jsonify({'error': 'Failed to upload image. Try again.'}), 400
+
+
+@app.route('/blockchain', methods=['POST'])
+def blockchain():
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'error': 'File is not provided'}), 400
+
+    bc = Blockchain()
+    result = bc.process_image(file)
+    if result:
+        return jsonify({'error': 'Image already exists. Try a different image taken by you.'}), 400
+    return jsonify({'data': {"status": "successfully"}}), 200
