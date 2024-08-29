@@ -21,17 +21,15 @@ class S3Client:
             aws_secret_access_key=self.aws_secret_access_key
         )
 
-    def upload_file_to_s3(self, file_name, file: io.BytesIO) -> str:
+    def upload_file_to_s3(self, file_name, file) -> str:
         bucket = self.bucket_name
         client = self.get_s3_client()
-        result = client.put_object(Bucket=bucket, Body=file.getvalue(), Key=file_name)
-
-        if result['ResponseMetadata']['HTTPStatusCode'] != 200:
+        try:
+            client.upload_fileobj(
+                file, bucket,
+                file_name, ExtraArgs={"ContentType": file.content_type}
+            )
+            resource_url = f"https://{bucket}.s3.amazonaws.com/{parse.quote(file_name)}"
+            return resource_url
+        except Exception as e:
             raise Exception()
-
-        resource_url = f"https://{bucket}.s3.amazonaws.com/{parse.quote(file_name)}"
-        return resource_url
-
-    def upload_temp_file_to_s3(self, file_name: str, content) -> str:
-        data = io.BytesIO(content.read())
-        return self.upload_file_to_s3(file_name, data)

@@ -9,7 +9,7 @@ from flask_cors import CORS
 
 from corsproxy.veribot import VeriBot3000
 from corsproxy.s3_client import S3Client
-from corsproxy.models import User, Vote
+from corsproxy.models import User, Vote, Block, db
 from blockchain.hashing import Blockchain
 from create_app import app
 
@@ -55,10 +55,11 @@ def thought():
     if not name:
         return jsonify({'error': {'name': 'Name is required to submit.'}}), 400
 
-    if len(name) > 100:
+    if len(name) > 50:
         return jsonify({'error': {'name': 'Name too long.'}}), 400
 
     description = data.get('description')
+    link = data.get('link')
     if not description or len(description.split(" ")) < 21:
         if not description:
             counter = 0
@@ -70,14 +71,17 @@ def thought():
         return jsonify({'error': errormessage}), 400
 
     user = User.query.filter_by(name=name).first()
+    latest_block = Block.query.order_by(Block.index.desc()).first()
     if user is not None:
+        latest_block.user = user
         user.grokcoins += 1
         db.session.commit()
         message = "In any perfect world, one vote is allowed. But hey, you got a GovCoin!"
         errormessage = {'name': message}
         return jsonify({'error': errormessage}), 400
 
-    new_user = User(name=name, thought=description)
+    new_user = User(name=name, thought=description, link=link)
+    latest_block.user = new_user
     db.session.add(new_user)
     db.session.commit()
     return jsonify({
@@ -149,11 +153,7 @@ def detectrash():
         if not is_trash_detected:
             return jsonify({
                 'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'
-            }), 400
-
-        s3 = S3Client()
-        file_name = f"user_uploaded_file_{time.time()}-{file.filename}".strip()
-        s3.upload_temp_file_to_s3(file_name, file)
+            }), 400 
         return jsonify({'data': {'success': 'Trash detected in the image.'}}), 200
     except Exception as error:
         return jsonify({'error': 'Failed to upload image. Try again.'}), 400
@@ -165,8 +165,30 @@ def blockchain():
     if not file:
         return jsonify({'error': 'File is not provided'}), 400
 
+    blob = request.files.get("blob")
+    project_name = request.form.get("project_name")
     bc = Blockchain()
-    result = bc.process_image(file)
-    if result:
+    already_exists, image_hash = bc.process_image(file)
+    if already_exists:
         return jsonify({'error': 'Image already exists. Try a different image taken by you.'}), 400
-    return jsonify({'data': {"status": "successfully"}}), 200
+
+    # Store image to S3
+    block = Block.query.filter_by(image_hash=image_hash).first()
+    s3 = S3Client()
+    file_name = f"blockchain_uploaded_file_{time.time()}_{file.filename}".strip()
+    try:
+        resource_url = s3.upload_file_to_s3(file_name, blob)
+        block.image_link = resource_url
+        block.project_name = project_name
+        db.session.commit()
+        return jsonify({'data': {"status": "successfully"}}), 200
+    except Exception as err:
+        return jsonify({'error': 'An error occurred when upload. Please try again.'})
+
+
+@app.route('/blocks', methods=["GET"])
+def blocks():
+    project_name = request.args.get('project_name')
+    imageblocks = Block.query.filter_by(project_name=project_name).all()
+    all_blocks = [ibk.to_dict() for ibk in imageblocks]
+    return jsonify({'data': all_blocks})

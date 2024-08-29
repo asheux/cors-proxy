@@ -53,7 +53,8 @@ class Blockchain:
             timestamp=timestamp,
             image_hash=image_hash,
             block_hash=block_hash,
-            previous_hash="0"
+            previous_hash="0",
+            project_name="genesis",
         )
         return block
 
@@ -73,7 +74,8 @@ class Blockchain:
             timestamp=timestamp,
             image_hash=image_hash,
             previous_hash=previous_hash,
-            block_hash=block_hash
+            block_hash=block_hash,
+            project_name="initproject"
         )
         db.session.add(new_block)
         db.session.commit()
@@ -82,8 +84,8 @@ class Blockchain:
     def process_image(self, image_path):
         image_hash = self.hash_image(image_path)
         if Block.query.filter_by(image_hash=image_hash).first():
-            return True
+            return True, None
 
         self.add_block(image_hash)
-        return False
+        return False, image_hash
 

@@ -15,6 +15,7 @@ class User(db.Model):
     upvotes = db.Column(db.Integer, default=0)
     downvotes = db.Column(db.Integer, default=0)
     grokcoins = db.Column(db.Integer, default=1)
+    link = db.Column(db.String(256), nullable=True)
 
     def __repr__(self):
         return f'<Thought {self.name}>'
@@ -28,6 +29,7 @@ class User(db.Model):
             'upvotes': self.upvotes,
             'downvotes': self.downvotes,
             'grokcoins': self.grokcoins,
+            'link': self.link,
         }
 
 
@@ -43,11 +45,23 @@ class Block(db.Model):
     __tablename__ = 'blockchain'
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     index = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     image_hash = db.Column(db.String(256), nullable=False, unique=True)
     block_hash = db.Column(db.String(256), nullable=False)
     previous_hash = db.Column(db.String(256), nullable=False)
+    image_link = db.Column(db.String(256), nullable=True)
+    project_name = db.Column(db.String(100), unique=True, nullable=False)
+    user = db.relationship('User', backref=db.backref('blocks', lazy=True))
 
     def __repr__(self):
         return f'<Block {self.index}>'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "image_link": self.image_link,
+            "created_by": self.user.name,
+        }
