@@ -36,6 +36,8 @@ shell)
 init)
   wait_for_db
   flask db init
+  flask db migrate
+  flask db upgrade
   ;;
 runprodserver)
   wait_for_db
