@@ -39,6 +39,12 @@ init)
   flask db migrate
   flask db upgrade
   ;;
+dropall)
+  wait_for_db
+  flask db downgrade base
+  flask db migrate
+  flask db upgrade
+  ;;
 runprodserver)
   wait_for_db
   flask db migrate
