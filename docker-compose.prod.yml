@@ -8,6 +8,7 @@ services:
             - 5432:5432
         env_file:
             - .env
+        network_mode: host
 
     app:
         build:
@@ -25,6 +26,7 @@ services:
             - .env
         ports:
             - 5000:5000
+        network_mode: host
 
     nginx:
         build:
@@ -40,6 +42,7 @@ services:
             - 80:80
             - 443:443
         restart: always
+        network_mode: host
 
 volumes:
     postgres_data:
