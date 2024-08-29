@@ -33,18 +33,20 @@ pipenv_install)
 shell)
   bash
   ;;
-migrate)
+init)
   wait_for_db
-  python migrate.py
+  flask db init
   ;;
 runprodserver)
   wait_for_db
-  python3 migrate.py
+  flask db migrate
+  flask db upgrade
   gunicorn --bind 0.0.0.0:5000 wsgi:app --workers=2 --preload
   ;;
 rundevserver)
   wait_for_db
-  python3 migrate.py
+  flask db migrate
+  flask db upgrade
   flask run --host=0.0.0.0 --port=5000 --debug
   ;;
 python)

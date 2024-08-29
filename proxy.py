@@ -6,12 +6,15 @@ from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_migrate import Migrate
 
 from corsproxy.veribot import VeriBot3000
 from corsproxy.s3_client import S3Client
 from corsproxy.models import User, Vote, Block, db
 from blockchain.hashing import Blockchain
 from create_app import app
+
+migrate = Migrate(app, db)
 
 
 @app.route('/')
@@ -153,7 +156,7 @@ def detectrash():
         if not is_trash_detected:
             return jsonify({
                 'error': 'No trash detected in the image. GovTrash AI is not perfect. Try again!'
-            }), 400 
+            }), 400
         return jsonify({'data': {'success': 'Trash detected in the image.'}}), 200
     except Exception as error:
         return jsonify({'error': 'Failed to upload image. Try again.'}), 400
