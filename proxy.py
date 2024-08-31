@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
+from sqlalchemy import or_
 
 from corsproxy.veribot import VeriBot3000
 from corsproxy.s3_client import S3Client
@@ -100,7 +101,14 @@ def thought():
 
 @app.route('/thoughts', methods=['GET'])
 def thoughts():
-    userthoughts = User.query.order_by(User.created_at.desc()).all()
+    search_query = request.args.get('search')
+    if search_query:
+        userthoughts = User.query.filter(or_(
+            User.name.ilike(f'%{search_query}'),
+            User.thought.ilike(f'%{search_query}')
+        )).all()
+    else:
+        userthoughts = User.query.order_by(User.created_at.desc()).all()
     all_thoughts = [t.to_dict() for t in userthoughts]
     return jsonify({'data': all_thoughts})
 
