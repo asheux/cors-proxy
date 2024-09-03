@@ -63,5 +63,5 @@ class Block(db.Model):
             "id": self.id,
             "timestamp": self.timestamp,
             "image_link": self.image_link,
-            "created_by": self.user.name,
+            "created_by": self.user.name if self.user else None,
         }

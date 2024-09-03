@@ -27,7 +27,7 @@ wait_for_db() {
 }
 
 case "$1" in
-pipenv_install)
+pipeninstall)
   pipenv install "$2"
   ;;
 shell)

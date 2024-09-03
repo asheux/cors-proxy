@@ -184,7 +184,7 @@ def blockchain():
         return jsonify({'error': 'Image already exists. Try a different image taken by you.'}), 400
 
     # Store image to S3
-    block = Block.query.filter_by(image_hash=image_hash).first()
+    block = Block.query.order_by(Block.index.desc()).first()
     s3 = S3Client()
     file_name = f"blockchain_uploaded_file_{time.time()}_{file.filename}".strip()
     try:
