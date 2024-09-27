@@ -76,7 +76,7 @@ def thought():
 
     user = User.query.filter_by(name=name).first()
     latest_block = Block.query.order_by(Block.index.desc()).first()
-    if user is not None:
+    if user is not None and latest_block is not None:
         latest_block.user = user
         user.grokcoins += 1
         db.session.commit()
@@ -109,6 +109,7 @@ def thoughts():
         )).all()
     else:
         userthoughts = User.query.order_by(User.created_at.desc()).all()
+
     all_thoughts = [t.to_dict() for t in userthoughts]
     return jsonify({'data': all_thoughts})
 
@@ -118,7 +119,11 @@ def upvote(user_id):
     vote = request.json.get('vote')
     if not vote or vote >= 1:
         vote = 1
+
     user = User.query.get_or_404(user_id)
+    if not user:
+        return jsonify({'error': 'No data for this user id.'})
+
     new_vote = Vote(user_id=user_id, vote_type='upvote')
     db.session.add(new_vote)
     user.upvotes += vote
@@ -131,7 +136,11 @@ def downvote(user_id):
     vote = request.json.get('vote')
     if not vote or vote >= 1:
         vote = 1
+
     user = User.query.get_or_404(user_id)
+    if not user:
+        return jsonify({'error': 'No data for this user id.'})
+
     new_vote = Vote(user_id=user_id, vote_type='downvote')
     db.session.add(new_vote)
     user.downvotes += vote
@@ -189,8 +198,10 @@ def blockchain():
     file_name = f"blockchain_uploaded_file_{time.time()}_{file.filename}".strip()
     try:
         resource_url = s3.upload_file_to_s3(file_name, blob)
-        block.image_link = resource_url
-        block.project_name = project_name
+        if block:
+            block.image_link = resource_url
+            block.project_name = project_name
+
         db.session.commit()
         return jsonify({'data': {"status": "successfully"}}), 200
     except Exception as err:
