@@ -46,7 +46,7 @@ services:
         volumes:
             - /nginx/www/certbot:/var/www/certbot
             - certbot-etc:/etc/letsencrypt
-        command: certonly --webroot --webroot-path=/var/www/certbot --email sycyi@protonmail.com --agree-tos --no-eff-email -d tccup-api.kenyasparks.com
+        command: certonly --webroot --webroot-path=/var/www/certbot --email blus.vijkel@protonmail.com --agree-tos --no-eff-email -d tccup-api.kenyasparks.com
 
 volumes:
     postgres_data:
