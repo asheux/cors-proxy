@@ -37,9 +37,8 @@ services:
         container_name: nginx
         volumes:
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./nginx/www/certbot:/var/www/certbot
             - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-            - certbot-www:/var/www/certbot
         depends_on:
             - app
         networks:
@@ -53,9 +52,8 @@ services:
         image: certbot/certbot
         container_name: certbot
         volumes:
+            - ./nginx/www/certbot:/var/www/certbot
             - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-            - certbot-www:/var/www/certbot
         command: certonly --webroot --webroot-path=/var/www/certbot --email asheuh49@gmail.com --agree-tos --no-eff-email -d tccup-api.kenyasparks.com
         networks:
             - flasknet
@@ -63,8 +61,6 @@ services:
 volumes:
     postgres_data:
     certbot-etc:
-    certbot-var:
-    certbot-www:
 
 networks:
     flasknet:
