@@ -75,9 +75,7 @@ def thought():
         return jsonify({'error': errormessage}), 400
 
     user = User.query.filter_by(name=name).first()
-    latest_block = Block.query.order_by(Block.index.desc()).first()
-    if user is not None and latest_block is not None:
-        latest_block.user = user
+    if user is not None:
         user.grokcoins += 1
         db.session.commit()
         message = "In any perfect world, one vote is allowed. But hey, you got a GovCoin!"
@@ -85,7 +83,6 @@ def thought():
         return jsonify({'error': errormessage}), 400
 
     new_user = User(name=name, thought=description, link=link)
-    latest_block.user = new_user
     db.session.add(new_user)
     db.session.commit()
     return jsonify({
