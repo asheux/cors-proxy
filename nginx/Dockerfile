@@ -8,6 +8,7 @@ WORKDIR /nginx
 COPY ./nginx-entrypoint.sh /usr/local/bin/nginx-entrypoint.sh
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+RUN  mkdir -p ./nginx/www/certbot/.well-known/acme-challenge
 
 RUN chmod +x /usr/local/bin/nginx-entrypoint.sh
 EXPOSE 80
