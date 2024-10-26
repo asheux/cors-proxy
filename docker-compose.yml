@@ -53,4 +53,4 @@ services:
 volumes:
     postgres_data:
     certbot-etc:
-    certbox-www:
+    certbot-www:
