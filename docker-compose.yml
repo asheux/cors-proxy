@@ -46,6 +46,7 @@ services:
         container_name: certbot
         volumes:
             - ./nginx/www/certbot:/var/www/certbot
+            - ./nginx/www/certbot/.well-known:/var/www/certbot/.well-known
             - certbot-etc:/etc/letsencrypt
         command: certonly --webroot --webroot-path=/var/www/certbot --email blus.vijkel@protonmail.com --agree-tos --no-eff-email -d tccup-api.kenyasparks.com
 
